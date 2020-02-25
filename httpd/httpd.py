@@ -53,18 +53,51 @@
     Common errors to look for:
     Constructing the HTTP Response with the correct headers is tricky
 '''
+import socket
 
 class HTTPServer:
     '''
         Remove the pass statement below and write your code here
     '''
-    pass
+    def __init__(self, host, port) :
+        super().__init__()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as self.sock:
+            self.sock.bind((host, port))
+            self.sock.listen()
+            while True:
+                connection, address = self.sock.accept()
+                with connection:
+                    print('Connected by', address)
+
+                    uri = ""
+                    code, c_type, c_length, data = self.get_data(uri)
+                    response = self.response_headers(code, c_type, c_length) + data
+                    connection.sendall(bytes(response, 'utf8'))
+                    connection.close()
+
+    def get_data(self, uri):
+        data = "<h1>Webserver Under construction</h1>"
+        return 200, "text/html", len(data), data
+
+    def response_headers(self, status_code, content_type, length):
+        line = "\n"
+        
+        response_code = {200: "200 OK"}
+        
+        headers = ""
+        headers += "HTTP/1.1 " + response_code[status_code] + line
+        headers += "Content-Type: " + content_type + line
+        headers += "Content-Length: " + str(length) + line
+        headers += "Connection: close" + line
+        headers += line
+        return headers
 
 def main():
     # test harness checks for your web server on the localhost and on port 8888
     # do not change the host and port
     # you can change  the HTTPServer object if you are not following OOP
-    HTTPServer('127.0.0.1', 8888)
+    http = HTTPServer('127.0.0.1', 8888)
+    # print("host is : {} and port is : {} ".format(http.host, http.port))        
 
 if __name__ == "__main__":
     main()                   
