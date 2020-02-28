@@ -49,88 +49,167 @@ Explore the use of the library mimetype in python.
 https://www.tutorialspoint.com/How-to-find-the-mime-type-of-a-file-in-Python
 '''
 
-import socket
-import os,mimetypes
-root = "/home/dharshak/Desktop/MSIT/IOS-Python/tws-m2"
-enable_directory_browser = True
+# import socket
+# import os,mimetypes
+# root = "/home/dharshak/Desktop/MSIT/IOS-Python/tws-m2"
+# enable_directory_browser = True
 
-def get_files(path):
-    files = []
-    for file in os.listdir(root + path):
-        if(path == root):
-            files.append("<a href = \""+file + "\" > " + file + "</a> <br>")
-        else:
-            files.append("<a href = \""+os.path.join(path,file) + "\" >" + file + "</a> <br>")
-    return ''.join(files)    
-def get_content_type(path):
-    typ, a = mimetypes.guess_type(root + path)
-    if typ is None:
-        return "text"
-    else:
-        return typ    
+# def get_files(path):
+#     files = []
+#     for file in os.listdir(root + path):
+#         if(path == root):
+#             files.append("<a href = \""+file + "\" > " + file + "</a> <br>")
+#         else:
+#             files.append("<a href = \""+os.path.join(path,file) + "\" >" + file + "</a> <br>")
+#     return ''.join(files)    
+# def get_content_type(path):
+#     typ, a = mimetypes.guess_type(root + path)
+#     if typ is None:
+#         return "text"
+#     else:
+#         return typ    
 
-def init(IP, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((IP, port))
-        s.listen()
-        while True:
-            conn, addr = s.accept()
-            with conn:
-                print('Connected by', addr)
-                # TODO read the request and extract the URI
-                input = conn.recv(1024).decode("UTF-8")
-                uri = input.split(" ")[1]
-                flag = os.path.exists(root + uri)
-                if input.split(" ")[0] != 'GET' or uri ==" ":
-                    response = b'''\
-HTTP/1.1 404 File Not Found
-Content - Type:html
+# def init(IP, port):
+#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as s:
+#         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+#         s.bind((IP, port))
+#         s.listen()
+#         while True:
+#             conn, addr = s.accept()
+#             with conn:
+#                 print('Connected by', addr)
+#                 # TODO read the request and extract the URI
+#                 input = conn.recv(1024).decode("UTF-8")
+#                 uri = input.split(" ")[1]
+#                 flag = os.path.exists(root + uri)
+#                 if input.split(" ")[0] != 'GET' or uri ==" ":
+#                     response = b'''\
+# HTTP/1.1 404 File Not Found
+# Content - Type:html
 
-<h1>bad request </h1>'''
-                elif flag == False:
-                    response = b"""\
-HTTP/1.1 404 File Not Found
-Content - Type:html
+# <h1>bad request </h1>'''
+#                 elif flag == False:
+#                     response = b"""\
+# HTTP/1.1 404 File Not Found
+# Content - Type:html
 
-<h1>File Not Found<h1>""" 
-                elif enable_directory_browser:
-                    if uri == "/favicon.ico":
-                        pass
-                    elif flag and os.path.isfile(root + uri):
-                        content_type = get_content_type(uri)
-                        f = open(root + uri, 'rb')
-                        string = f.read()
-                        response = b"""\
-HTTP/1.1 200 OK
-Content - Type: """ +bytes(content_type,"UTF-8")+b"""l
+# <h1>File Not Found<h1>""" 
+#                 elif enable_directory_browser:
+#                     if flag and os.path.isfile(root + uri):
+#                         content_type = get_content_type(uri)
+#                         f = open(root + uri, 'rb')
+#                         string = f.read()
+#                         response = b"""\
+# HTTP/1.1 200 OK
+# Content - Type: """ +bytes(content_type,"UTF-8")+b"""l
 
-""" + string
-                    else:
-                        response = b"""\
-HTTP/1.1 200 OK
-Content - Type:html
+# """ + string
+#                     else:
+#                         response = b"""\
+# HTTP/1.1 200 OK
+# Content - Type:html
 
-""" + bytes(get_files(uri), "UTF-8")
+# """ + bytes(get_files(uri), "UTF-8")
 
-                else:
-                    response = b"""\
-HTTP/1.1 400 BAD REQUEST
-Content-Type: html;
+#                 else:
+#                     response = b"""\
+# HTTP/1.1 400 BAD REQUEST
+# Content-Type: html;
 
-<h1>BAD REQUEST</h1>"""                             
+# <h1>BAD REQUEST</h1>"""                             
                 
-                conn.sendall(response) 
-                conn.close()
+#                 conn.sendall(response) 
+#                 conn.close()
 
+# def main():
+# # test harness checks for your web server on the localhost and on port 8888
+# # do not change the host and port
+# # you can change  the HTTPServer object if you are not following OOP
+#     init('127.0.0.1', 10000)
+
+# if __name__ == "__main__":
+#     main()
+
+import socket
+import mimetypes
+import os
+
+root = "/home/dharshak/Desktop/MSIT/IOS-Python/tws-m2"
+class HTTPServer:
+    def __init__(self, IP, port):
+        super().__init__()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as self.s:
+            self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+            self.s.bind((IP, port))
+            self.s.listen()
+            while True:
+                conn, addr = self.s.accept()
+                with conn:
+                    print('Connected by', addr)
+                    try :
+                        # TODO read the request and extract the UR
+                        data = str(conn.recv(1024))
+                        print("Data" + data)
+                        uri = ""
+                        data = str(data).split(" ")
+                        uri = data[1]
+                        # TODO update the parameter with the request URI
+                        code, c_type, c_length, data = self.get_data(uri)
+                        response = self.response_headers(code, c_type, c_length).encode() + data
+                        conn.sendall(response)
+                    except :
+                        conn.close()
+
+    def get_data(self, uri):
+        '''
+            TODO: This function has to be updated for M2
+        '''
+        if(uri == "/"):
+            uri = root + uri
+            data = ""
+
+            for i in os.listdir( uri ):
+                data = data + '<a href=\"' + i + '\">' + i + '<br>'
+            return 200, "text/html", len(data),data.encode()
+        else:
+            data = ""
+            if(os.path.isdir(root + uri)):
+                dirList = os.listdir(root + uri)
+                for i in dirList:
+                    data = data + '<a href=\"' + uri + "\\" + i + '\">' +i+ '</a><br>'
+                return 200, "text/html", len(data), data.encode()
+            uri = root + uri
+            if(os.path.isfile(uri)):
+                typ = mimetypes.MimeTypes().guess_type(uri)[0]
+                file = open(uri,'rb')
+                data = file.read()
+                return 200, typ, len(data), data
+            else:
+                data = '<h1>File Not Found</h1>'
+                return 404, "text/html", len(data), data.encode()
+
+    def response_headers(self, status_code, content_type, length):
+        line = "\n"
+        # TODO update this dictionary for 404 status codes
+        response_code = {200: "200 OK",404:"404 Not Found"}
+        headers = ""
+        headers += "HTTP/1.1 " + response_code[status_code] + line
+        headers += "Content-Type: " + content_type + line
+        headers += "Content-Length: " + str(length) + line
+        headers += "Connection: close" + line
+        headers += line
+        return headers
+
+typ = ""
 def main():
-# test harness checks for your web server on the localhost and on port 8888
-# do not change the host and port
-# you can change  the HTTPServer object if you are not following OOP
-    init('127.0.0.1', 10000)
+    # test harness checks for your web server on the localhost and on port 8888
+    # do not change the host and port
+    # you can change  the HTTPServer object if you are not following OOP
+    HTTPServer('127.0.0.1', 8888)
 
 if __name__ == "__main__":
     main()
+
 
 
 

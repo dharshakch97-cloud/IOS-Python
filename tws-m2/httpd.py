@@ -88,20 +88,11 @@ class HTTPServer:
         	data = "<h1>Webserver Under construction</h1>"
         	return 200, "text/html", len(data),data.encode()
         else:
-            # there iS a  FILE EXPECTING FROM BROWSER
-            # print(uri)
             uri = os.getcwd() + "/www/"+uri
-            # uri = "D:\courses\IOS\M2\tws-m2\www\" + uri (file name)
-
-            if(os.path.isfile(uri)):
-
-                # typ = uri.split(".")[1]
+            if(os.path.isfile(uri)) :
             	typ = mimetypes.MimeTypes().guess_type(uri)[0]
-            	# print(typ)
-            	# print(uri)
             	file = open(uri,'rb')
-            	data = file.read()   # reading from file
-
+            	data = file.read()
             	return 200, typ, len(data), data
             else:
             	data = '<h1 color="red">File Not Found</h1>'
@@ -109,10 +100,8 @@ class HTTPServer:
 
     def response_headers(self, status_code, content_type, length):
         line = "\n"
-
         # TODO update this dictionary for 404 status codes
         response_code = {200: "200 OK",404:"404 Not Found"}
-
         headers = ""
         headers += "HTTP/1.1 " + response_code[status_code] + line
         headers += "Content-Type: " + content_type + line
@@ -120,14 +109,13 @@ class HTTPServer:
         headers += "Connection: close" + line
         headers += line
         return headers
+
 typ = ""
 def main():
     # test harness checks for your web server on the localhost and on port 8888
     # do not change the host and port
     # you can change  the HTTPServer object if you are not following OOP
     HTTPServer('127.0.0.1', 8888)
-
-
 
 if __name__ == "__main__":
     main()
