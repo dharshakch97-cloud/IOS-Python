@@ -52,8 +52,8 @@ https://www.tutorialspoint.com/How-to-find-the-mime-type-of-a-file-in-Python
 import socket
 import mimetypes
 import os
-
-root = "/home/dharshak/Desktop/MSIT/IOS-Python/tws-m2"
+import sys
+root = "/home/dharshak/Desktop/MSIT/IOS-Python/tws-m4"
 class HTTPServer:
     def __init__(self, IP, port):
         super().__init__()
@@ -68,7 +68,7 @@ class HTTPServer:
                     try :
                         # TODO read the request and extract the UR
                         data = str(conn.recv(1024))
-                        print("Data" + data)
+                        # print("Data" + data)
                         uri = ""
                         data = str(data).split(" ")
                         uri = data[1]
@@ -86,27 +86,63 @@ class HTTPServer:
         if(uri == "/"):
             uri = root + uri
             data = ""
-
-            for i in os.listdir( uri ):
+            for i in os.listdir(uri):
                 data = data + '<a href=\"' + i + '\">' + i + '<br>'
             return 200, "text/html", len(data),data.encode()
         else:
             data = ""
             if(os.path.isdir(root + uri)):
-                back = "\\"
                 dirList = os.listdir(root + uri)
                 for i in dirList:
-                    data = data + '<a href=\"' + uri + "\\" + i + '\">' + i + '</a>' + "&nbsp;&nbsp;&nbsp;&nbsp;" '<br>'
+                    data = data + '<a href=\"' + uri + "\\" + i + '\">' + i + '</a><br>'
+                # data = data + '<button name = "button" value = "BACK" type = "button" onclick = "hello()">BACK</button>'  
                 return 200, "text/html", len(data), data.encode()
-            uri = root + uri
-            if(os.path.isfile(uri)):
-                typ = mimetypes.MimeTypes().guess_type(uri)[0]
-                file = open(uri,'rb')
-                data = file.read()
-                return 200, typ, len(data), data
-            else:
-                data = '<h1>File Not Found</h1>'
-                return 404, "text/html", len(data), data.encode()
+            # uri = root + uri
+            if(os.path.isfile(root + uri)):
+                typ = mimetypes.MimeTypes().guess_type(root + uri)[0]
+
+                if "bin" in (uri) :
+                    stdin = sys.stdin.fileno()
+                    stdout = sys.stdout.fileno()
+                    childStdin, parentStdout = os.pipe()
+                    parentStdin, childStdout = os.pipe()
+                    pid = os.fork()
+                    sys.stdout.flush()
+                    s = ""
+                    if pid == 0 :
+                        sys.stdout.flush()
+                        os.close(parentStdin)
+                        os.close(parentStdout)
+                        os.dup2(childStdout, stdout)
+                        if "bin/ls" in uri :
+                            args = ["/bin/ls", "-la"]
+                            os.execvp(args[0], args)
+                        elif "bin/du" in uri :
+                            args = ["/usr/bin/du", "-la"]
+                            os.execvp(args[0], args)
+                        else :
+                            exec(open(root + uri).read())
+                            os._exit(0)
+                    else :
+                        os.close(childStdout)
+                        os.close(childStdin)
+                        os.dup2(parentStdin, stdin)
+                        stdin = os.fdopen(parentStdin, 'r')
+                        for j in stdin :
+                            s += j
+                        # print(s)
+                        return 200, "text/html", len(s), s.encode("utf - 8")
+                else :
+                    print("bin not found")
+            else :
+                try :
+                    file = open(root + uri,'rb')
+                    data = file.read()
+                except :
+                    data = "<h1>File Not Found</h1>"
+                    return 404, "text/html", len(data), data.encode()
+
+            
 
     def response_headers(self, status_code, content_type, length):
         line = "\n"
